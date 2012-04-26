@@ -1,16 +1,21 @@
 package test;
 
+import main.Bank;
+import main.Expression;
 import main.Money;
+import main.Sum;
 import org.junit.Test;
+import sun.security.x509.GeneralSubtrees;
 
 import java.math.BigDecimal;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class MoneyTest {
 
     @Test
-    public void shouldTestEquality(){
+    public void shouldTestEquality() {
         Money five = Money.dollar(5);
         assertEquals(five, Money.dollar(5));
 
@@ -19,30 +24,74 @@ public class MoneyTest {
     }
 
     @Test
-    public void shouldBeAbleToMultiplyDollars(){
-        Money fiveDollars = Money.dollar(5);
-        Money dollarProduct = fiveDollars.times(5);
-        assertEquals(Money.dollar(25),dollarProduct);
-    }
-
-    @Test
-    public void shouldBeAbleToMultiplyFrancs(){
-        Money fiveFrancs = Money.franc(5);
-        Money francProduct = fiveFrancs.times(5);
-        assertEquals(Money.franc(25),francProduct);
-    }
-
-    @Test
-    public void shouldBeAbleToAddDollars(){
+    public void shouldDoSimpleAddition() {
         Money five = Money.dollar(5);
-        Money sum = five.plus(five);
-        assertEquals(Money.dollar(10), sum);
+        Expression sum = five.plus(five);
+        Bank bank = new Bank();
+        Money reduced = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(10), reduced);
     }
 
     @Test
-    public void shouldBeAbleToAddFrancs(){
-        Money five = Money.franc(5);
-        Money sum = five.plus(five);
-        assertEquals(Money.franc(10), sum);
+    public void testPlusReturnsSum() {
+        Money five = Money.dollar(5);
+        Expression result = five.plus(five);
+        Sum sum = (Sum) result;
+        assertEquals(five, sum.augend);
+        assertEquals(five, sum.addend);
     }
+
+    @Test
+    public void shouldReduceSum() {
+        Expression sum = new Sum(Money.dollar(7), Money.dollar(3));
+        Bank bank = new Bank();
+        Money result = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(10), result);
+    }
+
+    @Test
+    public void shouldReduceMoneyInDifferentCurrency() {
+        Bank bank = new Bank();
+        bank.addRate("CHF", "USD", 2);
+        Money result = bank.reduce(Money.franc(2), "USD");
+        assertEquals(Money.dollar(1), result);
+    }
+
+    @Test
+    public void testIdentityRate() {
+        assertEquals(1, new Bank().rate("USD", "USD"));
+    }
+
+    @Test
+    public void shouldBeAbleToAddTwoDifferentCurrencies() {
+        Expression fiveDollars = Money.dollar(5);
+        Expression tenFrancs = Money.franc(10);
+        Bank bank = new Bank();
+        bank.addRate("CHF", "USD", 2);
+        Money result = bank.reduce(fiveDollars.plus(tenFrancs), "USD");
+        assertEquals(Money.dollar(10), result);
+    }
+
+    @Test
+    public void shouldBeAbleToComputeComplexSumExpression() {
+        Expression fiveDollars = Money.dollar(5);
+        Expression tenFrancs = Money.franc(10);
+        Bank bank = new Bank();
+        bank.addRate("CHF", "USD", 2);
+        Expression sum = new Sum(fiveDollars, tenFrancs).plus(fiveDollars);
+        Money result = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(15), result);
+    }
+
+    @Test
+    public void shouldBeAbleToComputeComplexSumAndProductExpression() {
+        Expression fiveBucks = Money.dollar(5);
+        Expression tenFrancs = Money.franc(10);
+        Bank bank = new Bank();
+        bank.addRate("CHF", "USD", 2);
+        Expression sum = new Sum(fiveBucks, tenFrancs).times(2);
+        Money result = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(20), result);
+    }
+
 }

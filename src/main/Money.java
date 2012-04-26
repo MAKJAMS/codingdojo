@@ -1,12 +1,12 @@
 package main;
 
 
-public class Money {
+public class Money implements Expression{
 
     int amount;
     String currency;
     
-    private Money(int amount, String currency){
+    Money(int amount, String currency){
         this.amount = amount;
         this.currency = currency;
     }
@@ -18,8 +18,8 @@ public class Money {
         return new Money(amount, "CHF");
     }
 
-    public Money times(int amount) {
-        return new Money(this.amount * amount, this.currency);
+    public Expression times(int multiplier) {
+        return new Money(amount * multiplier, currency);
     }
 
     @Override
@@ -42,7 +42,12 @@ public class Money {
         return result;
     }
 
-    public Money plus(Money addend) {
-        return new Money(amount + addend.amount, currency);
+    public Expression plus(Expression addend) {
+        return new Sum(this, addend);
+    }
+
+    public Money reduce(Bank bank, String to) {
+        int rate = bank.rate(currency,to);
+        return new Money(amount/rate , to);
     }
 }
