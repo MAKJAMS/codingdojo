@@ -5,12 +5,8 @@ import main.Expression;
 import main.Money;
 import main.Sum;
 import org.junit.Test;
-import sun.security.x509.GeneralSubtrees;
-
-import java.math.BigDecimal;
 
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class MoneyTest {
 
