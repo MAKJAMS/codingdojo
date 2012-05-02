@@ -3,7 +3,6 @@ package test;
 import main.Money;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 
 import static junit.framework.Assert.assertEquals;
 
